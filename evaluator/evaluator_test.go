@@ -3,9 +3,9 @@ package evaluator
 import (
 	"testing"
 
-	"github.com/ShivankSharma070/go-interpreter/lexer"
-	"github.com/ShivankSharma070/go-interpreter/object"
-	"github.com/ShivankSharma070/go-interpreter/parser"
+	"github.com/ShivankSharma070/go-compiler/lexer"
+	"github.com/ShivankSharma070/go-compiler/object"
+	"github.com/ShivankSharma070/go-compiler/parser"
 )
 
 // ========= INTEGER ============

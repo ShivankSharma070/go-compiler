@@ -1,7 +1,7 @@
 package evaluator
 
 import (
-	"github.com/ShivankSharma070/go-interpreter/object"
+	"github.com/ShivankSharma070/go-compiler/object"
 	"os"
 	"fmt"
 )

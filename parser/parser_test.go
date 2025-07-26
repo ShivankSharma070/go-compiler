@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ShivankSharma070/go-interpreter/ast"
-	"github.com/ShivankSharma070/go-interpreter/lexer"
+	"github.com/ShivankSharma070/go-compiler/ast"
+	"github.com/ShivankSharma070/go-compiler/lexer"
 )
 
 func TestReturnParser(t *testing.T) {

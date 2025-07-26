@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ShivankSharma070/go-interpreter/ast"
-	"github.com/ShivankSharma070/go-interpreter/lexer"
-	"github.com/ShivankSharma070/go-interpreter/token"
+	"github.com/ShivankSharma070/go-compiler/ast"
+	"github.com/ShivankSharma070/go-compiler/lexer"
+	"github.com/ShivankSharma070/go-compiler/token"
 )
 
 // Constants for deciding precedence of operators with parsing them as expression
