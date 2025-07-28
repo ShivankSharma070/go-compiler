@@ -108,5 +108,5 @@ func ReadOperands(def *Definition, ins Instructions) ([]int,int) {
 }
 
 func ReadUint16(ins Instructions) uint16 {
-return binary.BigEndian.Uint16(ins)
+	return binary.BigEndian.Uint16(ins)
 }
