@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"fmt"
 	"github.com/ShivankSharma070/go-compiler/ast"
 	"github.com/ShivankSharma070/go-compiler/code"
 	"github.com/ShivankSharma070/go-compiler/object"
@@ -27,11 +28,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		}
+
 	case *ast.ExpressionStatement:
 		err := c.Compile(node.Expression)
 		if err != nil {
 			return err
 		}
+
 	case *ast.InfixExpression:
 		err := c.Compile(node.Left)
 		if err != nil {
@@ -41,6 +44,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+
+		switch node.Operator {
+		case "+":
+			c.emit(code.OpAdd)
+		default:
+			return fmt.Errorf("Unkown operator: %s", node.Operator)
+		}
+
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		idx := c.addConstant(integer)
