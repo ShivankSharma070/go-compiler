@@ -35,6 +35,15 @@ func TestIntegerArigthmetic(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestBooleanExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"true", true},
+		{"false", false},
+	}
+
+	runVmTests(t, tests)
+}
+
 func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 
@@ -75,8 +84,26 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		if err != nil {
 			t.Errorf("testIntegerLiteral error: %s", err)
 		}
+	case bool:
+		err := testBooleanLiteral(actual, expected)
+		if err != nil {
+			t.Errorf("testBooleanLiteral error: %s", err)
+		}
 	}
 }
+
+func testBooleanLiteral(actual object.Object, value bool) error {
+	result, ok := actual.(*object.Boolean)
+	if !ok {
+		return fmt.Errorf("object is not boolean, got=%T (%+v)", actual, actual)
+	}
+
+	if result.Value != value {
+		return fmt.Errorf("object has wrong value, want=%t, got=%t", value, result.Value)
+	}
+	return nil
+}
+
 func testIntegerLiteral(obj object.Object, value int64) error {
 	actual, ok := obj.(*object.Integer)
 	if !ok {

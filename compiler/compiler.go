@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+
 	"github.com/ShivankSharma070/go-compiler/ast"
 	"github.com/ShivankSharma070/go-compiler/code"
 	"github.com/ShivankSharma070/go-compiler/object"
@@ -63,6 +64,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		integer := &object.Integer{Value: node.Value}
 		idx := c.addConstant(integer)
 		c.emit(code.OpConstant, idx)
+	case *ast.BoolExpression: 
+		if node.Value {
+			c.emit(code.OpTrue)
+		}else  {
+			c.emit(code.OpFalse)
+		}
 	}
 
 	return nil
