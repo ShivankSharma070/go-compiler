@@ -68,52 +68,86 @@ func (vm *VM) Run() error {
 				return err
 			}
 
-		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan :
+		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
 			err := vm.executeComparison(op)
-		if err != nil {
-			return err
-			} 
-			
+			if err != nil {
+				return err
+			}
+		case code.OpMinus:
+			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
+		case code.OpBang:
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
+			}
+
 		}
 	}
 	return nil
 }
 
-func (vm *VM)executeComparison( op code.Opcode) error{
+func (vm *VM) executeMinusOperator() error{
+operand := vm.pop()
+
+	if operand.Type() != object.INTEGER_OBJ {
+		return fmt.Errorf("unsupported type for negation: %s", operand.Type())
+	}
+
+	value := operand.(*object.Integer).Value
+	return vm.push(&object.Integer{Value : -value})
+}
+
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+
+	switch operand {
+	case True:
+		return vm.push(False)
+	case False:
+		return vm.push(True)
+	default:
+		return vm.push(False)
+	}
+}
+
+func (vm *VM) executeComparison(op code.Opcode) error {
 	right := vm.pop()
 	left := vm.pop()
 
-	if left.Type() == object.INTEGER_OBJ && right.Type()== object.INTEGER_OBJ {
-		return vm.executeIntegerComparison(op, left, right) 
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		return vm.executeIntegerComparison(op, left, right)
 	}
 
 	switch op {
-	case code.OpEqual :
-	return vm.push(nativeBoolToBooleanObject(left == right))
-	case code.OpNotEqual :
-	return vm.push(nativeBoolToBooleanObject(left != right))
+	case code.OpEqual:
+		return vm.push(nativeBoolToBooleanObject(left == right))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToBooleanObject(left != right))
 
-	default :
+	default:
 		return fmt.Errorf("unkown operator: %d (%s %s)", op, left.Type(), right.Type())
-	} 
+	}
 
 	return nil
 }
 
-func (vm *VM) executeIntegerComparison(op code.Opcode, left , right object.Object) error {
+func (vm *VM) executeIntegerComparison(op code.Opcode, left, right object.Object) error {
 	leftValue := left.(*object.Integer).Value
 	rightValue := right.(*object.Integer).Value
 
 	switch op {
-	case code.OpEqual :
+	case code.OpEqual:
 		return vm.push(nativeBoolToBooleanObject(leftValue == rightValue))
-	case  code.OpNotEqual:
+	case code.OpNotEqual:
 		return vm.push(nativeBoolToBooleanObject(leftValue != rightValue))
-	case  code.OpGreaterThan:
+	case code.OpGreaterThan:
 		return vm.push(nativeBoolToBooleanObject(leftValue > rightValue))
-	default : 
+	default:
 		return fmt.Errorf("unkown operator: %d", op)
-	} 
+	}
 }
 
 func nativeBoolToBooleanObject(value bool) *object.Boolean {

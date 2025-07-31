@@ -18,6 +18,8 @@ const (
 	OpEqual
 	OpNotEqual
 	OpGreaterThan // The reason why we don't have less than here, although it will work, is that while compiling we can change order of operands, that will act like less than
+	OpMinus
+	OpBang
 )
 
 type Instructions []byte
@@ -75,6 +77,8 @@ var definitions = map[Opcode]*Definition{
 	OpEqual:       {"OpEqual", []int{}},
 	OpNotEqual:    {"OpNotEqual", []int{}},
 	OpGreaterThan: {"OpGreaterThan", []int{}},
+	OpMinus: {"OpMinus", []int{}},
+	OpBang: {"OpBang", []int{}},
 }
 
 func Lookup(op Opcode) (*Definition, error) {
