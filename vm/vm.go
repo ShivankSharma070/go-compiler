@@ -45,15 +45,52 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
-		case code.OpAdd :
-			right := vm.pop()
-			left := vm.pop()
-			rightValue := right.(*object.Integer).Value
-			leftValue := left.(*object.Integer).Value
-			vm.push(&object.Integer{Value: rightValue + leftValue})
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
+			err := vm.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
+		case code.OpPop:
+			vm.pop()
 		}
 	}
 	return nil
+}
+
+func (vm *VM) executeBinaryOperation(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+	rightType := right.Type()
+	leftType := left.Type()
+
+	if rightType == object.INTEGER_OBJ && leftType == object.INTEGER_OBJ {
+		return vm.executeBinaryIntegerOperation(op, left, right)
+	}
+
+	return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
+}
+
+func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left object.Object, right object.Object) error {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	var result int64 
+
+	switch op {
+	case code.OpAdd : 
+		result = leftValue + rightValue;
+	case code.OpSub :
+		result = leftValue - rightValue;
+	case code.OpMul : 
+		result = leftValue * rightValue 
+	case code.OpDiv :
+	result = leftValue/rightValue
+
+	default : 
+		return fmt.Errorf("unkown integer operator: %d", op)
+	}
+
+	return vm.push(&object.Integer{Value: result})
 }
 
 func (vm *VM) push(obj object.Object) error {
@@ -67,8 +104,13 @@ func (vm *VM) push(obj object.Object) error {
 	return nil
 }
 
-func (vm *VM) pop()object.Object {
-	o := vm.stack[vm.sp - 1]
+func (vm *VM) pop() object.Object {
+	o := vm.stack[vm.sp-1]
 	vm.sp--
 	return o
+}
+
+// This function is to get the element which is recently popped, as we just decrementing vm.sp to pop a element.
+func (vm *VM) LastPoppedStackElem() object.Object {
+	return vm.stack[vm.sp]
 }

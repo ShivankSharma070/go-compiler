@@ -9,6 +9,10 @@ import (
 const (
 	OpConstant Opcode = iota
 	OpAdd
+	OpPop
+	OpMul
+	OpDiv
+	OpSub
 )
 
 type Instructions []byte
@@ -57,6 +61,10 @@ type Definition struct {
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
 	OpAdd:      {"OpAdd", []int{}},
+	OpPop:      {"OpPop", []int{}},
+	OpMul:      {"OpMul", []int{}},
+	OpDiv:      {"OpDiv", []int{}},
+	OpSub:      {"OpSub", []int{}},
 }
 
 func Lookup(op Opcode) (*Definition, error) {
