@@ -102,7 +102,7 @@ func parse(input string) *ast.Program {
 	return p.ParseProgram()
 }
 
-func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
+func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	t.Helper()
 
 	switch expected := expected.(type) {
