@@ -39,8 +39,8 @@ func TestIntegerArigthmetic(t *testing.T) {
 	runVmTests(t, tests)
 }
 
-func TestStringExpression(t *testing.T){
-	tests := []vmTestCase {
+func TestStringExpression(t *testing.T) {
+	tests := []vmTestCase{
 		{`"monkey"`, "monkey"},
 		{`"mon"+"key"`, "monkey"},
 		{`"mon"+"key"+"bannana"`, "monkeybannana"},
@@ -99,11 +99,21 @@ func TestConditionals(t *testing.T) {
 }
 
 func TestGlobalLetStatements(t *testing.T) {
-	tests := []vmTestCase {
+	tests := []vmTestCase{
 		{"let one = 1; one;", 1},
 		{"let one = 1; let two=2; one+two;", 3},
 		{"let one = 1; let two=one+one; one+two", 3},
 	}
+	runVmTests(t, tests)
+}
+
+func TestArrayLiteral(t *testing.T) {
+	tests := []vmTestCase{
+		{"[]", []int{}},
+		{"[1,2,3]", []int{1, 2, 3}},
+		{"[1+2,3-4,5*6]", []int{3, -1, 30}},
+	}
+
 	runVmTests(t, tests)
 }
 
@@ -155,6 +165,22 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	case *object.Null:
 		if actual != Null {
 			t.Errorf("object is not null: %T (%+v)", actual, actual)
+		}
+	case []int:
+		array, ok := actual.(*object.Array)
+		if !ok {
+			t.Errorf("object is not array: %T (%+v)", actual, actual)
+			return
+		}
+
+		if len(array.Elements) != len(expected) {
+			t.Errorf("wrong num of elements: want=%d, got=%d", len(array.Elements), len(expected))
+		}
+		for i, expectedElement := range expected {
+			err := testIntegerLiteral(array.Elements[i], int64(expectedElement))
+			if err != nil {
+				t.Errorf("testIntegerLiteral error: %s", err)
+			}
 		}
 	}
 }
