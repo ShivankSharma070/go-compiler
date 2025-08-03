@@ -9,6 +9,7 @@ import (
 )
 
 const StackSize = 2048
+const GlobalSize = 65536
 
 var (
 	True  = &object.Boolean{Value: true}
@@ -20,8 +21,15 @@ type VM struct {
 	instructions code.Instructions
 	constants    []object.Object
 
-	stack []object.Object
-	sp    int //Stackpointer, points to next free slot.
+	stack  []object.Object
+	sp     int //Stackpointer, points to next free slot.
+	global []object.Object
+}
+
+func NewWithGlobalState(bc *compiler.Bytecode, global []object.Object) *VM {
+	vm := New(bc)
+	vm.global = global
+	return vm
 }
 
 func New(bc *compiler.Bytecode) *VM {
@@ -30,6 +38,7 @@ func New(bc *compiler.Bytecode) *VM {
 		instructions: bc.Instructions,
 		stack:        make([]object.Object, StackSize),
 		sp:           0,
+		global:       make([]object.Object, GlobalSize),
 	}
 }
 
@@ -99,6 +108,18 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpSetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+			vm.global[globalIndex] = vm.pop()
+		case code.OpGetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+			err := vm.push(vm.global[globalIndex])
+			if err != nil {
+				return err
+			}
+
 		}
 	}
 	return nil
@@ -179,11 +200,29 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	rightType := right.Type()
 	leftType := left.Type()
 
-	if rightType == object.INTEGER_OBJ && leftType == object.INTEGER_OBJ {
+	switch {
+	case rightType == object.INTEGER_OBJ && leftType == object.INTEGER_OBJ:
 		return vm.executeBinaryIntegerOperation(op, left, right)
+	case rightType == object.STRING_OBJ && leftType == object.STRING_OBJ:
+		return vm.executeBinaryStringOperation(op, left, right)
 	}
 
 	return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
+}
+
+func (vm *VM) executeBinaryStringOperation(op code.Opcode, left object.Object, right object.Object) error {
+	leftValue := left.(*object.String).Value
+	rightValue := right.(*object.String).Value
+
+	var result string
+	switch op {
+	case code.OpAdd:
+		result = leftValue + rightValue
+	default:
+		return fmt.Errorf("unkown string operation: %d", op)
+	}
+
+	return vm.push(&object.String{Value: result})
 }
 
 func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left object.Object, right object.Object) error {
@@ -235,7 +274,7 @@ func isTruthy(obj object.Object) bool {
 	switch obj := obj.(type) {
 	case *object.Boolean:
 		return obj.Value
-	case *object.Null :
+	case *object.Null:
 		return false
 	default:
 		return true

@@ -21,6 +21,13 @@ type EmittedInstruction struct {
 	position int
 }
 
+func NewWithState(symTab *SymbolTable, cons []object.Object) *Compiler {
+	comp := New()
+	comp.constants = cons
+	comp.symbolTable = symTab
+	return comp
+}
+
 func New() *Compiler {
 	return &Compiler{
 		instructions:        code.Instructions{},
@@ -118,6 +125,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		integer := &object.Integer{Value: node.Value}
 		idx := c.addConstant(integer)
 		c.emit(code.OpConstant, idx)
+
+	case *ast.StringLiteral:
+		st := &object.String{Value: node.Value}
+		idx := c.addConstant(st)
+		c.emit(code.OpConstant, idx)
+
 	case *ast.BoolExpression:
 		if node.Value {
 			c.emit(code.OpTrue)

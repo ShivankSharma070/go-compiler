@@ -39,6 +39,16 @@ func TestIntegerArigthmetic(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestStringExpression(t *testing.T){
+	tests := []vmTestCase {
+		{`"monkey"`, "monkey"},
+		{`"mon"+"key"`, "monkey"},
+		{`"mon"+"key"+"bannana"`, "monkeybannana"},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestBooleanExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{"true", true},
@@ -84,6 +94,15 @@ func TestConditionals(t *testing.T) {
 		{"if (false) {10}", Null},
 		{"!( if(false){10;} )", true},
 		{"if ((if (false) { 10 })) { 10 } else { 20 }", 20},
+	}
+	runVmTests(t, tests)
+}
+
+func TestGlobalLetStatements(t *testing.T) {
+	tests := []vmTestCase {
+		{"let one = 1; one;", 1},
+		{"let one = 1; let two=2; one+two;", 3},
+		{"let one = 1; let two=one+one; one+two", 3},
 	}
 	runVmTests(t, tests)
 }

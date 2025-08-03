@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/ShivankSharma070/go-compiler/lexer"
+	"github.com/ShivankSharma070/go-compiler/object"
 	"github.com/ShivankSharma070/go-compiler/compiler"
 	"github.com/ShivankSharma070/go-compiler/vm"
 	"github.com/ShivankSharma070/go-compiler/parser"
@@ -15,6 +16,10 @@ const PROMPT = ">>>"
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+
+	constants := []object.Object{}
+	global := make([]object.Object, vm.GlobalSize)
+	symbolTable := compiler.NewSymbolTable()
 
 	for {
 		fmt.Print(PROMPT)
@@ -34,14 +39,17 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Compilation failed: \n%s \n", err)
 			continue
 		}
 
-		machine := vm.New(comp.Bytecode())
+		code := comp.Bytecode()
+		constants = code.Constants
+
+		machine := vm.NewWithGlobalState(code, global)
 		err = machine.Run()
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Executing bytecode failed: \n%s \n", err)
