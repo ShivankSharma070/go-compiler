@@ -466,6 +466,16 @@ func TestFunction(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input: `fn() {}`,
+			expectedConstants: []any{
+				code.Make(code.OpReturn),
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
 	}
 	runCompilerTest(t, tests)
 }
@@ -473,13 +483,13 @@ func TestFunction(t *testing.T) {
 func TestCompilationScope(t *testing.T) {
 	compiler := New()
 	if compiler.scopeIndex != 0 {
-			t.Errorf("scopeIndex wrong. got=%d, want=%d",compiler.scopeIndex, 0)
+		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
 	}
 
 	compiler.emit(code.OpNull)
 	compiler.enterScope()
 	if compiler.scopeIndex != 1 {
-			t.Errorf("scopeIndex wrong. got=%d, want=%d",compiler.scopeIndex, 1)
+		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 1)
 	}
 
 	compiler.emit(code.OpSub)
@@ -495,7 +505,7 @@ func TestCompilationScope(t *testing.T) {
 
 	compiler.leaveScope()
 	if compiler.scopeIndex != 0 {
-			t.Errorf("scopeIndex wrong. got=%d, want=%d",compiler.scopeIndex, 0)
+		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
 	}
 
 	compiler.emit(code.OpAdd)
@@ -509,7 +519,7 @@ func TestCompilationScope(t *testing.T) {
 		t.Errorf("lastinstruction opcode is wrong, got=%d, want=%d", last.op, code.OpAdd)
 	}
 
-	previous := compiler.scope[compiler.scopeIndex].previousInstruction 
+	previous := compiler.scope[compiler.scopeIndex].previousInstruction
 	if previous.op != code.OpNull {
 		t.Errorf("previousInstruction opcode is wrong, got=%d, want=%d", previous.op, code.OpNull)
 	}

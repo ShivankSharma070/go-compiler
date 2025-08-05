@@ -257,6 +257,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if c.lastInstructionIs(code.OpPop) {
 			c.replaceLastPopWithReturn()
 		}
+		if !c.lastInstructionIs(code.OpReturnValue) {
+			c.emit(code.OpReturn)
+		}
 
 		instruction := c.leaveScope()
 		compiledFunction := &object.CompiledFunction{Instructions: instruction}
@@ -364,5 +367,6 @@ func (c *Compiler) leaveScope() code.Instructions {
 func (c *Compiler) replaceLastPopWithReturn() {
 	position := c.scope[c.scopeIndex].lastInstruction.position
 	c.replaceInstruction(position, code.Make(code.OpReturnValue))
+
 	c.scope[c.scopeIndex].lastInstruction.op = code.OpReturnValue
 }
