@@ -3,23 +3,25 @@ package object
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"hash/fnv"
+	"strings"
 
 	"github.com/ShivankSharma070/go-compiler/ast"
+	"github.com/ShivankSharma070/go-compiler/code"
 )
 
 const (
-	INTEGER_OBJ      = "INTEGER"
-	BOOLEAN_OBJ      = "BOOLEAN"
-	RETURN_VALUE_OBJ = "RETURN_VALUE"
-	NULL_OBJ         = "NULL"
-	ERROR_OBJ        = "ERROR"
-	FUNCTION_OBJ     = "FUNCTION"
-	STRING_OBJ = "STRING"
-	BUILTIN_OBJ = "BUILTIN"
-	ARRAY_OBJ = "ARRAY"
-	HASH_OBJ = "HASH"
+	INTEGER_OBJ           = "INTEGER"
+	BOOLEAN_OBJ           = "BOOLEAN"
+	RETURN_VALUE_OBJ      = "RETURN_VALUE"
+	NULL_OBJ              = "NULL"
+	ERROR_OBJ             = "ERROR"
+	FUNCTION_OBJ          = "FUNCTION"
+	STRING_OBJ            = "STRING"
+	BUILTIN_OBJ           = "BUILTIN"
+	ARRAY_OBJ             = "ARRAY"
+	HASH_OBJ              = "HASH"
+	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
 )
 
 type ObjectType string
@@ -30,13 +32,13 @@ type Object interface {
 }
 
 // Interface to check if a object is hashable or not.
-type Hashable interface{
+type Hashable interface {
 	// TODO: Improve performance of HashKey() by caching the return values
 	HashKey() HashKey
 }
 
 type HashKey struct {
-	Type ObjectType
+	Type  ObjectType
 	Value uint64
 }
 
@@ -46,8 +48,8 @@ type Integer struct {
 
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
-func (i *Integer) HashKey() HashKey{
-	return HashKey{Type: i.Type(), Value : uint64(i.Value)}
+func (i *Integer) HashKey() HashKey {
+	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
 }
 
 type Boolean struct {
@@ -64,7 +66,7 @@ func (b *Boolean) HashKey() HashKey {
 		value = 0
 	}
 
-	return HashKey{Type: b.Type(), Value : value}
+	return HashKey{Type: b.Type(), Value: value}
 }
 
 type Null struct{}
@@ -77,12 +79,12 @@ type String struct {
 }
 
 func (s *String) Inspect() string  { return s.Value }
-func (s *String) Type() ObjectType {return STRING_OBJ}
+func (s *String) Type() ObjectType { return STRING_OBJ }
 func (s *String) HashKey() HashKey {
 	h := fnv.New64a()
 	h.Write([]byte(s.Value))
 
-	return HashKey{Type : s.Type(), Value : h.Sum64()}
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
 }
 
 type ReturnValue struct {
@@ -132,7 +134,7 @@ type Environment struct {
 	Outer *Environment
 }
 
-func NewEnclosingEnvironment(enclosingEnv *Environment) *Environment{
+func NewEnclosingEnvironment(enclosingEnv *Environment) *Environment {
 	env := NewEnvironment()
 	env.Outer = enclosingEnv
 	return env
@@ -140,7 +142,7 @@ func NewEnclosingEnvironment(enclosingEnv *Environment) *Environment{
 
 func NewEnvironment() *Environment {
 	s := make(map[string]Object)
-	return &Environment{Store: s, Outer: nil }
+	return &Environment{Store: s, Outer: nil}
 }
 
 func (e *Environment) Get(name string) (Object, bool) {
@@ -164,13 +166,14 @@ type Builtin struct {
 	Fn BuiltInFunction
 }
 
-func (bu *Builtin) Inspect() string{return "builtin function"}
-func (bu *Builtin) Type() ObjectType { return BUILTIN_OBJ}
- 
+func (bu *Builtin) Inspect() string  { return "builtin function" }
+func (bu *Builtin) Type() ObjectType { return BUILTIN_OBJ }
+
 // =================== ARRAY =========================
 type Array struct {
 	Elements []Object
 }
+
 func (ar *Array) Type() ObjectType { return ARRAY_OBJ }
 func (ar *Array) Inspect() string {
 	var out bytes.Buffer
@@ -189,7 +192,7 @@ func (ar *Array) Inspect() string {
 
 // ==================== HASH ============================
 type HashPair struct {
-	Key Object
+	Key   Object
 	Value Object
 }
 
@@ -197,7 +200,7 @@ type Hash struct {
 	Pair map[HashKey]HashPair
 }
 
-func (h *Hash) Type() ObjectType {return HASH_OBJ}
+func (h *Hash) Type() ObjectType { return HASH_OBJ }
 func (h *Hash) Inspect() string {
 	var out bytes.Buffer
 	pairs := []string{}
@@ -208,4 +211,17 @@ func (h *Hash) Inspect() string {
 	out.WriteString(strings.Join(pairs, ", "))
 	out.WriteString("}")
 	return out.String()
+}
+
+// =================== COMPILED FUNCTION ====================
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType {
+	return COMPILED_FUNCTION_OBJ
+} 
+func (cf *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CompiledFunction[%p]", cf)
+
 }
