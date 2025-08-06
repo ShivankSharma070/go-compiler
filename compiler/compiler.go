@@ -79,8 +79,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if !ok {
 			return fmt.Errorf("undefined variable: %s", node.Value)
 		}
+		if symbol.Scope == GlobalScope {
+			c.emit(code.OpGetGlobal, symbol.Index)
+		} else {
+			c.emit(code.OpGetLocal, symbol.Index)
+		}
 
-		c.emit(code.OpGetGlobal, symbol.Index)
 
 	case *ast.LetStatement:
 		err := c.Compile(node.Value)
@@ -88,7 +92,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 		symbol := c.symbolTable.Define(node.Name.Value)
-		c.emit(code.OpSetGlobal, symbol.Index)
+		if symbol.Scope == GlobalScope {
+			c.emit(code.OpSetGlobal, symbol.Index)
+		} else {
+			c.emit(code.OpSetLocal, symbol.Index)
+		}
 
 	case *ast.InfixExpression:
 		if node.Operator == "<" {
@@ -360,6 +368,7 @@ func (c *Compiler) enterScope() {
 
 	c.scope = append(c.scope, scope)
 	c.scopeIndex++
+	c.symbolTable = NewEnclosedSymbolTable(c.symbolTable)
 }
 
 func (c *Compiler) leaveScope() code.Instructions {
@@ -367,6 +376,7 @@ func (c *Compiler) leaveScope() code.Instructions {
 
 	c.scope = c.scope[:len(c.scope)-1]
 	c.scopeIndex--
+	c.symbolTable = c.symbolTable.outer
 	return instruction
 }
 
