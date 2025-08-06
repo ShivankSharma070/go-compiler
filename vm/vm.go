@@ -53,7 +53,7 @@ func New(bc *compiler.Bytecode) *VM {
 }
 
 func (vm *VM) currentFrame() *Frame {
-	return vm.frames[vm.framesIndex - 1]
+	return vm.frames[vm.framesIndex-1]
 }
 
 func (vm *VM) pushFrame(f *Frame) {
@@ -83,7 +83,7 @@ func (vm *VM) Run() error {
 
 		ip = vm.currentFrame().ip
 		ins = vm.currentFrame().Instructions()
-		op =  code.Opcode(ins[ip])
+		op = code.Opcode(ins[ip])
 
 		switch op {
 		case code.OpConstant:
@@ -175,6 +175,7 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
 		case code.OpIndex:
 			index := vm.pop()
 			left := vm.pop()
@@ -183,6 +184,26 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
+		case code.OpCall:
+			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("Calling a non-function")
+			}
+
+			frame := NewFrame(fn)
+			vm.pushFrame(frame)
+
+		case code.OpReturnValue:
+			returnValue := vm.pop()
+			vm.popFrame()
+			vm.pop()
+
+			err := vm.push(returnValue)
+			if err != nil {
+				return err
+			}
+
 		}
 	}
 	return nil
