@@ -480,6 +480,48 @@ func TestFunction(t *testing.T) {
 	runCompilerTest(t, tests)
 }
 
+func TestFunctionCall(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn(){23}();`,
+			expectedConstants: []any{
+				23,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input : `
+			let noArg = fn(){24};
+			noArg();
+			`,
+			expectedConstants : []any{
+				24,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions {
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			} ,
+		},
+	}
+
+	runCompilerTest(t, tests)
+}
+
 func TestCompilationScope(t *testing.T) {
 	compiler := New()
 	if compiler.scopeIndex != 0 {
