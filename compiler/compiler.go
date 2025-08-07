@@ -85,7 +85,6 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpGetLocal, symbol.Index)
 		}
 
-
 	case *ast.LetStatement:
 		err := c.Compile(node.Value)
 		if err != nil {
@@ -269,8 +268,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
+		numLocals := c.symbolTable.numDefinations
+
 		instruction := c.leaveScope()
-		compiledFunction := &object.CompiledFunction{Instructions: instruction}
+		compiledFunction := &object.CompiledFunction{Instructions: instruction, NumLocals: numLocals}
 
 		c.emit(code.OpConstant, c.addConstant(compiledFunction))
 	case *ast.ReturnStatement:

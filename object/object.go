@@ -216,6 +216,7 @@ func (h *Hash) Inspect() string {
 // =================== COMPILED FUNCTION ====================
 type CompiledFunction struct {
 	Instructions code.Instructions
+	NumLocals int
 }
 
 func (cf *CompiledFunction) Type() ObjectType {
