@@ -171,6 +171,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("unkown operator: %s", node.Operator)
 		}
+
 	case *ast.IfElseExpression:
 		err := c.Compile(node.Condition)
 		if err != nil {
@@ -211,6 +212,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		afterAlternativePos := len(c.currentInstructions())
 		c.changeOperand(jumpPos, afterAlternativePos)
+
 	case *ast.ArrayLiteral:
 		for _, el := range node.Elements {
 			err := c.Compile(el)
@@ -220,6 +222,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpArray, len(node.Elements))
+
 	case *ast.HashLiteral:
 		keys := []ast.Expression{}
 		for k := range node.Pairs {
@@ -243,6 +246,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpHash, len(node.Pairs)*2)
+
 	case *ast.IndexExpression:
 		err := c.Compile(node.Left)
 		if err != nil {
@@ -253,8 +257,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 		c.emit(code.OpIndex)
+
 	case *ast.FunctionExpression:
 		c.enterScope()
+		for _, p := range node.Parameters {
+			c.symbolTable.Define(p.Value)
+		}
+
 		err := c.Compile(node.Body)
 		if err != nil {
 			return err
@@ -271,21 +280,34 @@ func (c *Compiler) Compile(node ast.Node) error {
 		numLocals := c.symbolTable.numDefinations
 
 		instruction := c.leaveScope()
-		compiledFunction := &object.CompiledFunction{Instructions: instruction, NumLocals: numLocals}
-
+		compiledFunction := &object.CompiledFunction{
+			Instructions: instruction, 
+			NumLocals: numLocals,
+			NumParameters: len(node.Parameters),
+		}
 		c.emit(code.OpConstant, c.addConstant(compiledFunction))
+
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
 		if err != nil {
 			return err
 		}
 		c.emit(code.OpReturnValue)
+
 	case *ast.CallExpression:
 		err := c.Compile(node.Function)
 		if err != nil {
 			return err
 		}
-		c.emit(code.OpCall)
+
+	for _, a := range node.Argument {
+			err := c.Compile(a)
+			if err != nil {
+				return err
+			}
+		}
+
+		c.emit(code.OpCall, len(node.Argument))
 	}
 
 	return nil
