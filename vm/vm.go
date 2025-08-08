@@ -230,6 +230,7 @@ func (vm *VM) Run() error {
 			}
 		}
 	}
+
 	return nil
 }
 
