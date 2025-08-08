@@ -598,7 +598,7 @@ func TestFunctionCall(t *testing.T) {
 			`,
 			expectedConstants: []any{
 				[]code.Instructions{
-					code.Make(code.OpGetLocal,0),
+					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpReturnValue),
 				},
 				24,
@@ -620,9 +620,9 @@ func TestFunctionCall(t *testing.T) {
 			`,
 			expectedConstants: []any{
 				[]code.Instructions{
-					code.Make(code.OpGetLocal,0),
+					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpPop),
-					code.Make(code.OpGetLocal,1),
+					code.Make(code.OpGetLocal, 1),
 					code.Make(code.OpPop),
 					code.Make(code.OpGetLocal, 2),
 					code.Make(code.OpReturnValue),
@@ -707,6 +707,50 @@ func TestCompilationScope(t *testing.T) {
 	}
 }
 
+func TestBuiltins(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+			len([]);
+			push([],1);
+			`,
+			expectedConstants: []any{
+				1,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpGetBuiltin, 0),
+				code.Make(code.OpArray, 0),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+				code.Make(code.OpGetBuiltin, 5),
+				code.Make(code.OpArray, 0),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpCall, 2),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			fn(){ len([]) }
+			`,
+			expectedConstants: []any{
+				[]code.Instructions{
+					code.Make(code.OpGetBuiltin, 0),
+					code.Make(code.OpArray, 0),
+					code.Make(code.OpCall, 1),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilerTest(t, tests)
+}
+
 func runCompilerTest(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 	for _, tt := range tests {
@@ -774,7 +818,7 @@ func testInstructions(expectedInstructions []code.Instructions, actual code.Inst
 	}
 	for i, ins := range concatted {
 		if actual[i] != ins {
-			return fmt.Errorf("Wrong instruction at %d, want=%q, got=%q", i, ins, actual[i])
+			return fmt.Errorf("Wrong instruction at %d, want=%q, got=%q\n", i, concatted, actual)
 		}
 	}
 
