@@ -22,6 +22,7 @@ const (
 	ARRAY_OBJ             = "ARRAY"
 	HASH_OBJ              = "HASH"
 	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
+	CLOUSRE_OBJ           = "CLOSURE"
 )
 
 type ObjectType string
@@ -204,15 +205,29 @@ func (h *Hash) Inspect() string {
 
 // =================== COMPILED FUNCTION ====================
 type CompiledFunction struct {
-	Instructions code.Instructions
-	NumLocals int
+	Instructions  code.Instructions
+	NumLocals     int
 	NumParameters int
 }
 
 func (cf *CompiledFunction) Type() ObjectType {
 	return COMPILED_FUNCTION_OBJ
-} 
+}
 func (cf *CompiledFunction) Inspect() string {
 	return fmt.Sprintf("CompiledFunction[%p]", cf)
 
+}
+
+// ===================== CLOSURE ============================
+type Closure struct {
+	Fn *CompiledFunction 
+	Free []Object
+}
+
+func (c *Closure) Type() ObjectType{
+	return CLOUSRE_OBJ 
+}
+
+func (c *Closure) Inspect() string {
+	return fmt.Sprintf("Closure[%p]", c)
 }
