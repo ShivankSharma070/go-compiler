@@ -157,6 +157,10 @@ func (p *Parser) parseLetStatement() ast.Statement {
 
 	stmt.Value = p.parseExpression(LOWEST)
 
+	if fl, ok := stmt.Value.(*ast.FunctionExpression); ok {
+		fl.Name = stmt.Name.Value
+	}
+
 	if p.isPeekToken(token.SEMICOLON) {
 		p.nextToken()
 	}

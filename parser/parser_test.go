@@ -506,6 +506,34 @@ func TestFunctionParameters(t *testing.T) {
 	}
 }
 
+func TestFunctionLiteralWithName(t *testing.T) {
+	input := `let myFunc = fn() {};`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkForParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.body does not contain %d statement. got=%d", 1, len(program.Statements))
+	}
+
+	letStmt, ok := program.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("program.Statement[0] is not a let statement, got=%T", program.Statements[0])
+	}
+
+	function, ok := letStmt.Value.(*ast.FunctionExpression)
+	if !ok {
+		t.Fatalf("letStmt.Value is not a function , got=%T", letStmt.Value)
+	}
+
+	if function.Name != "myFunc" {
+		t.Fatalf("Function.Name is not %s, got=%s", "myFunc", function.Name)
+	}
+
+}
+
 func TestStringLiteral(t *testing.T) {
 	input := `"hello world";`
 
@@ -691,7 +719,7 @@ func TestParsingIndexExpression(t *testing.T) {
 	}
 }
 
-func TestParsingHashLiterals(t *testing.T){
+func TestParsingHashLiterals(t *testing.T) {
 	input := `{"one":1, "two":2, "three":3}`
 	l := lexer.New(input)
 	p := New(l)
@@ -699,18 +727,18 @@ func TestParsingHashLiterals(t *testing.T){
 	checkForParserErrors(t, p)
 
 	stmt := program.Statements[0].(*ast.ExpressionStatement)
-	hash , ok := stmt.Expression.(*ast.HashLiteral)
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
 	if !ok {
 		t.Errorf("stmt.Expression is not of type ast.HashLiteral, got %T", stmt.Expression)
 	}
 
 	if len(hash.Pairs) != 3 {
-		t.Errorf("lenght os hash.Pairs is not %d, got %d",3, len(hash.Pairs))
+		t.Errorf("lenght os hash.Pairs is not %d, got %d", 3, len(hash.Pairs))
 	}
-	
+
 	expected := map[string]int64{
-		"one": 1,
-		"two": 2,
+		"one":   1,
+		"two":   2,
 		"three": 3,
 	}
 
@@ -725,7 +753,7 @@ func TestParsingHashLiterals(t *testing.T){
 	}
 }
 
-func TestParsingEmptyHashLiteral(t *testing.T){
+func TestParsingEmptyHashLiteral(t *testing.T) {
 	input := `{}`
 	l := lexer.New(input)
 	p := New(l)
@@ -733,13 +761,13 @@ func TestParsingEmptyHashLiteral(t *testing.T){
 	checkForParserErrors(t, p)
 
 	stmt := program.Statements[0].(*ast.ExpressionStatement)
-	hash , ok := stmt.Expression.(*ast.HashLiteral)
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
 	if !ok {
 		t.Errorf("stmt.Expression is not of type ast.HashLiteral, got %T", stmt.Expression)
 	}
 
 	if len(hash.Pairs) != 0 {
-		t.Errorf("lenght os hash.Pairs is not %d, got %d",0, len(hash.Pairs))
+		t.Errorf("lenght os hash.Pairs is not %d, got %d", 0, len(hash.Pairs))
 	}
 }
 
@@ -752,23 +780,23 @@ func TestParsingHashliteralWithExpression(t *testing.T) {
 	checkForParserErrors(t, p)
 
 	stmt := program.Statements[0].(*ast.ExpressionStatement)
-	hash , ok := stmt.Expression.(*ast.HashLiteral)
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
 	if !ok {
 		t.Errorf("stmt.Expression is not of type ast.HashLiteral, got %T", stmt.Expression)
 	}
 	if len(hash.Pairs) != 3 {
 		t.Errorf("lenght os hash.Pairs is not %d, got %d", 3, len(hash.Pairs))
 	}
-	
-	tests := map[string]func(ast.Expression) {
-		"one" : func(e ast.Expression) {
-			testInfixExpression(t, e,0, "+", 1)
+
+	tests := map[string]func(ast.Expression){
+		"one": func(e ast.Expression) {
+			testInfixExpression(t, e, 0, "+", 1)
 		},
-		"two" : func(e ast.Expression) {
-			testInfixExpression(t, e,10, "-", 3)
+		"two": func(e ast.Expression) {
+			testInfixExpression(t, e, 10, "-", 3)
 		},
-		"three" : func(e ast.Expression) {
-			testInfixExpression(t, e,15, "/", 5)
+		"three": func(e ast.Expression) {
+			testInfixExpression(t, e, 15, "/", 5)
 		},
 	}
 

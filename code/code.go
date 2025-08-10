@@ -36,6 +36,7 @@ const (
 	OpGetBuiltin
 	OpClosure
 	OpGetFree
+	OpCurrentClosure
 )
 
 type Instructions []byte
@@ -112,7 +113,8 @@ var definitions = map[Opcode]*Definition{
 	OpSetLocal:      {"OpSetLocal", []int{1}},
 	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 	OpClosure:       {"OpClosure", []int{2, 1}},
-	OpGetFree:       {"OpGetFree", []int{1}},
+	OpGetFree:        {"OpGetFree", []int{1}},
+	OpCurrentClosure : {"OpCurrentClosure", []int{}},
 }
 
 func Lookup(op Opcode) (*Definition, error) {

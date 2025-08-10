@@ -262,15 +262,48 @@ func TestResolveUnresolvableFree(t *testing.T) {
 		}
 	}
 
-	expectedUnresolvable := []string {
+	expectedUnresolvable := []string{
 		"b",
 		"d",
 	}
 
-	for _, name := range expectedUnresolvable{
-		_ ,ok := secondLocal.Resolve(name)
+	for _, name := range expectedUnresolvable {
+		_, ok := secondLocal.Resolve(name)
 		if ok {
 			t.Errorf("name %s is resolved, but expected not to.", name)
 		}
+	}
+}
+
+func TestDefineAndResovleFunctionName(t *testing.T) {
+	global := NewSymbolTable()
+	global.DefineFunctionName("a")
+
+	expected := Symbol{Name: "a", Scope: FunctionScope, Index: 0}
+
+	result, ok := global.Resolve(expected.Name)
+	if !ok {
+		t.Errorf("function name %s is not resolvable", expected.Name)
+	}
+
+	if result != expected {
+		t.Errorf("expected %s to resovle to %+v, got=%+v", expected.Name, expected, result)
+	}
+}
+
+func TestShadowingFunctionName(t *testing.T) {
+	global := NewSymbolTable()
+	global.DefineFunctionName("a")
+	global.Define("a")
+
+	expected := Symbol{Name: "a", Scope: GlobalScope, Index: 0}
+
+	result, ok := global.Resolve(expected.Name)
+	if !ok {
+		t.Errorf("function name %s is not resolvable", expected.Name)
+	}
+
+	if result != expected {
+		t.Errorf("expected %s to resovle to %+v, got=%+v", expected.Name, expected, result)
 	}
 }

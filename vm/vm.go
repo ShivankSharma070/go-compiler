@@ -252,28 +252,52 @@ func (vm *VM) Run() error {
 
 		case code.OpClosure:
 			constIndex := code.ReadUint16(ins[ip+1:])
-			_ = code.ReadUint8(ins[ip+3:])
+			numFree := code.ReadUint8(ins[ip+3:])
 			vm.currentFrame().ip += 3
 
-			err := vm.pushClosure(int(constIndex))
+			err := vm.pushClosure(int(constIndex), int(numFree))
 			if err != nil {
 				return err
 			}
 
+		case code.OpGetFree:
+			freeIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+
+			currentClosure := vm.currentFrame().c
+
+			err := vm.push(currentClosure.Free[freeIndex])
+			if err != nil {
+				return err
+			}
+
+		case code.OpCurrentClosure:
+			currentClosure := vm.currentFrame().c
+			err := vm.push(currentClosure)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func (vm *VM) pushClosure (index int) error {
+func (vm *VM) pushClosure(index, numFree int) error {
 	constant := vm.constants[index]
 	function, ok := constant.(*object.CompiledFunction)
 	if !ok {
 		return fmt.Errorf("not a function: %+v", constant)
 	}
 
-	closure := &object.Closure{Fn: function}
+	free := make([]object.Object, numFree)
+	for i := range numFree {
+		free[i] = vm.stack[vm.sp-numFree+i]
+	}
+
+	vm.sp = vm.sp - numFree
+
+	closure := &object.Closure{Fn: function, Free: free}
 	return vm.push(closure)
 }
 
