@@ -87,7 +87,6 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		c.loadSymbol(symbol)
 
-
 	case *ast.LetStatement:
 		err := c.Compile(node.Value)
 		if err != nil {
@@ -280,15 +279,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDefinations
-
 		instruction := c.leaveScope()
+
+		// This emits opcode to load all stack before loading the function onto it.
+		for _, sym := range freeSymbols {
+			c.loadSymbol(sym)
+		}
+
 		compiledFunction := &object.CompiledFunction{
 			Instructions:  instruction,
 			NumLocals:     numLocals,
 			NumParameters: len(node.Parameters),
 		}
-		c.emit(code.OpClosure, c.addConstant(compiledFunction))
+		c.emit(code.OpClosure, c.addConstant(compiledFunction), len(freeSymbols))
 
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
@@ -421,5 +426,7 @@ func (c *Compiler) loadSymbol(s Symbol) {
 		c.emit(code.OpGetLocal, s.Index)
 	case BuiltinScope:
 		c.emit(code.OpGetBuiltin, s.Index)
+	case FreeScope:
+		c.emit(code.OpGetFree, s.Index)
 	}
 }
